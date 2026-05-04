@@ -2,6 +2,10 @@
 
 This is a website that stores some of my projects related to AI.
 
+## Live Demo
+
+https://ai-project-opab.onrender.com/
+
 ## Structure
 
 This is a Flask web app.
