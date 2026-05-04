@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Netflix - Selection</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <style>
+        body {
+            background-color: #141414;
+            color: #fff;
+            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow-x: hidden;
+        }
+        .navbar {
+            background: linear-gradient(to bottom, rgba(0,0,0,0.7) 10%, rgba(0,0,0,0));
+            padding: 20px 4%;
+        }
+        .netflix-logo {
+            color: #E50914;
+            font-size: 2.5rem;
+            font-weight: bold;
+            text-transform: uppercase;
+            text-decoration: none;
+            line-height: 1;
+        }
+        .netflix-logo:hover {
+            color: #E50914;
+        }
+        .main-container {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-image: linear-gradient(to top, rgba(0,0,0,0.8) 0, rgba(0,0,0,0) 60%, rgba(0,0,0,0.8) 100%), url('https://assets.nflxext.com/ffe/siteui/vlv3/f841d4c7-10e1-40af-bcae-07a3f8dc141a/f6d7434e-d6de-4185-a6d4-c77a2d08737b/US-en-20220502-popsignuptwoweeks-perspective_alpha_website_medium.jpg');
+            background-size: cover;
+            background-position: center;
+        }
+        .upload-card {
+            background-color: rgba(0, 0, 0, 0.75);
+            padding: 60px 68px 40px;
+            border-radius: 4px;
+            width: 100%;
+            max-width: 450px;
+            min-height: 400px;
+        }
+        .upload-title {
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 28px;
+        }
+        .custom-checkbox-wrapper {
+            cursor: pointer;
+            position: relative;
+            width: 140px;
+            user-select: none;
+        }
+        .custom-checkbox-wrapper input {
+            position: absolute;
+            opacity: 0;
+            cursor: pointer;
+            height: 0;
+            width: 0;
+        }
+        .checkbox-card {
+            background-color: rgba(0,0,0,0.5);
+            border: 2px solid #555;
+            border-radius: 4px;
+            padding: 15px 10px;
+            text-align: center;
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            color: #8c8c8c;
+        }
+        .custom-checkbox-wrapper:hover .checkbox-card {
+            border-color: #999;
+            color: #fff;
+            transform: translateY(-2px);
+        }
+        .custom-checkbox-wrapper input:checked + .checkbox-card {
+            background-color: rgba(229, 9, 20, 0.15);
+            border-color: #E50914;
+            color: #fff;
+            box-shadow: 0 4px 15px rgba(229, 9, 20, 0.3);
+            transform: scale(1.05);
+        }
+        .checkbox-card i {
+            transition: transform 0.3s ease;
+        }
+        .custom-checkbox-wrapper input:checked + .checkbox-card i {
+            transform: scale(1.2);
+            color: #E50914;
+        }
+        .btn-netflix {
+            background-color: #E50914;
+            color: white;
+            border: none;
+            font-weight: 700;
+            font-size: 16px;
+            padding: 16px;
+            border-radius: 4px;
+            width: 100%;
+            transition: background-color 0.2s ease;
+            margin-top: 20px;
+        }
+        .btn-netflix:hover {
+            background-color: #f40612;
+            color: white;
+        }
+        .btn-netflix:disabled {
+            background-color: #555;
+            cursor: not-allowed;
+            opacity: 0.7;
+        }
+        .success-overlay {
+            display: none;
+            text-align: center;
+            padding-top: 40px;
+        }
+        .form-control:focus {
+            background-color: #333;
+            border-color: #E50914;
+            color: white;
+            box-shadow: none;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar fixed-top">
+        <a class="netflix-logo" href="#">NETFLIX</a>
+    </nav>
+    <div class="main-container">
+        <div class="upload-card">
+            <div id="uploadSection">
+                <h1 class="upload-title">Select Category</h1>
+                <form id="uploadForm" method="POST" action="/netflixSubmit">
+                    <div class="d-flex justify-content-center gap-3 mb-4">
+                        <label class="custom-checkbox-wrapper">
+                            <input type="radio" name="type" value="movies" required>
+                            <div class="checkbox-card w-100">
+                                <i class="bi bi-film mb-2 fs-4"></i>
+                                <span>Movies</span>
+                            </div>
+                        </label>
+                        <label class="custom-checkbox-wrapper">
+                            <input type="radio" name="type" value="tv shows" required>
+                            <div class="checkbox-card w-100">
+                                <i class="bi bi-tv mb-2 fs-4"></i>
+                                <span>TV Shows</span>
+                            </div>
+                        </label>
+                    </div>
+                    <button type="submit" class="btn btn-netflix" id="submitBtn" disabled>
+                        Submit Selection
+                    </button>
+                    <div class="mt-4 text-white-50 small">
+                        This page is protected by Google reCAPTCHA to ensure you're not a bot. <a href="#" class="text-white text-decoration-none hover-underline">Learn more.</a>
+                    </div>
+                </form>
+            </div>
+            <div id="successSection" class="success-overlay">
+                <div class="mb-4">
+                    <i class="bi bi-check-circle-fill text-danger" style="font-size: 5rem;"></i>
+                </div>
+                <h3>Selection Complete</h3>
+                <p class="text-white-50 mb-5">Your preference has been saved.</p>
+                <button class="btn btn-outline-light w-100 py-3" id="resetBtn">Select Another</button>
+            </div>
+        </div>
+    </div>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            const $submitBtn = $('#submitBtn');
+            const $uploadSection = $('#uploadSection');
+            const $successSection = $('#successSection');
+            $('input[name="type"]').on('change', function() {
+                if ($('input[name="type"]:checked').length > 0) {
+                    $submitBtn.prop('disabled', false);
+                }
+            });
+            $('#resetBtn').on('click', function() {
+                $successSection.fadeOut(400, function() {
+                    $uploadSection.fadeIn(400);
+                    $('input[name="type"]').prop('checked', false);
+                    $submitBtn.prop('disabled', true);
+                });
+            });
+        });
+    </script>
+</body>
+</html>

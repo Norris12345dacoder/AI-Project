@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My AI Projects</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --deep-blue: #081126;
+            --overlay-blue: rgba(8, 17, 38, 0.45);   
+            --overlay-purple: rgba(35, 10, 60, 0.65); 
+            --accent-purple: #9d00ff;
+            --accent-purple-hover: #b840ff;
+            --text-main: #ffffff;
+            --text-muted: #b0c0d0;
+            --neon-cyan: #00ffff;
+        }
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #000; 
+            font-family: 'VT323', monospace;
+            color: var(--text-main);
+            overflow: hidden;
+        }
+        .bg-image {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background-image: url("{{ url_for('static', filename='Gemini_Generated_Image_4y81rf4y81rf4y81.png') }}");
+            background-size: cover;
+            background-position: center;
+            z-index: 1; 
+            transform: scale(1.05);
+            animation: slowPan 30s ease-in-out infinite alternate;
+        }
+        .bg-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: linear-gradient(135deg, var(--overlay-blue) 0%, var(--overlay-purple) 100%);
+            z-index: 2; 
+        }
+        .scanlines {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255,0) 50%, rgba(0,0,0,0.2) 50%, rgba(0,0,0,0.2));
+            background-size: 100% 4px;
+            z-index: 3; 
+            pointer-events: none;
+        }
+        @keyframes slowPan {
+            0% {
+                transform: scale(1.05) translateX(0);
+            }
+            100% {
+                transform: scale(1.05) translateX(-15px);
+            }
+        }
+        nav {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            padding: 30px 50px;
+            display: flex;
+            justify-content: flex-end;
+            box-sizing: border-box;
+            z-index: 100; 
+            background: rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(4px);
+        }
+        .nav-links {
+            display: flex;
+            gap: 40px;
+        }
+        nav a {
+            color: var(--text-main);
+            text-decoration: none;
+            font-size: 1.5rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            transition: color 0.3s ease, text-shadow 0.3s ease;
+        }
+        nav a span {
+            margin-left: 8px;
+            color: var(--accent-purple);
+        }
+        nav a:hover, nav a.active {
+            color: var(--neon-cyan);
+            text-shadow: 0 0 10px var(--neon-cyan);
+        }
+        nav a:hover span, nav a.active span {
+            color: var(--neon-cyan);
+            text-shadow: none;
+        }
+        .container {
+            display: flex;
+            height: 100vh;
+            padding-left: 20%;
+            padding-right: 5%;
+            align-items: center;
+            box-sizing: border-box;
+            position: relative; 
+            z-index: 10; 
+            padding-top: 100px;
+        }
+        section {
+            opacity: 0;
+            visibility: hidden;
+            position: absolute;
+            top: 50%;
+            left: 5%;
+            transform: translateY(calc(-50% + 10px));
+            width: 100%;
+            transition: opacity 0.8s ease, transform 0.8s ease, visibility 0s linear 0.8s;
+        }
+
+        section.active {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(-50%);
+            transition: opacity 0.8s ease, transform 0.8s ease, visibility 0s;
+        }
+        #intro-page {
+            width: auto;
+            min-height: 70vh;
+        }
+        h1 {
+            font-family: 'Press Start 2P', cursive;
+            font-size: 4rem;
+            line-height: 1.4;
+            text-transform: uppercase;
+            margin: 0 0 20px 0;
+            color: #fff;
+            text-shadow: 4px 4px 0px var(--accent-purple);
+        }
+        .subtitle {
+            font-size: 1.8rem;
+            color: var(--text-muted);
+            margin-bottom: 40px;
+            max-width: 500px;
+            line-height: 1.4;
+            letter-spacing: 2px;
+        }
+        .author {
+            color: var(--neon-cyan);
+        }
+        .cta-button {
+            display: inline-flex;
+            align-items: center;
+            background-color: var(--accent-purple);
+            color: #fff;
+            padding: 15px 25px;
+            font-size: 1.2rem;
+            font-family: 'VT323', monospace;
+            text-decoration: none;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            border: 2px solid var(--accent-purple);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 4px 4px 0px rgba(0, 0, 0, 0.5);
+        }
+        .cta-button:hover {
+            background-color: rgba(0, 0, 0, 0.5);
+            border-color: var(--neon-cyan);
+            color: var(--neon-cyan);
+            box-shadow: 0 0 15px var(--neon-cyan);
+        }
+        .cta-button:active {
+            transform: translate(4px, 4px);
+            box-shadow: 0px 0px 0px rgba(0, 0, 0, 0.5);
+        }
+        .cta-button .arrow {
+            margin-left: 15px; transition: transform 0.3s ease;
+        }
+        .cta-button:hover .arrow {
+            transform: translateX(5px);
+        }
+        #projects-page {
+            max-height: 80vh;
+            overflow-y: auto;
+            padding-right: 20px;
+        }
+        #projects-page::-webkit-scrollbar {
+            width: 8px;
+        }
+        #projects-page::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.5);
+            border-left: 1px solid var(--accent-purple);
+        }
+        #projects-page::-webkit-scrollbar-thumb {
+            background: var(--neon-cyan);
+            box-shadow: 0 0 10px var(--neon-cyan);
+        }
+        #projects-page::-webkit-scrollbar-thumb:hover {
+            background: #fff;
+        }
+        #projects-page h2 {
+            font-family: 'Press Start 2P', cursive;
+            font-size: 2rem;
+            margin-bottom: 30px;
+            margin-top: 0;
+            text-shadow: 3px 3px 0px var(--accent-purple);
+            letter-spacing: 2px;
+        }
+        .project-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+            width: 100%;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        .project-card {
+            display: flex;
+            flex-direction: column;
+            aspect-ratio: 4 / 5;
+            background: rgba(10, 10, 25, 0.7);
+            border: 1px solid var(--accent-purple);
+            text-decoration: none;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            backdrop-filter: blur(3px);
+            cursor: pointer;
+        }
+        .project-img-area {
+            height: 40%;
+            width: 100%;
+            background: repeating-linear-gradient(
+                -45deg,
+                rgba(157, 0, 255, 0.1),
+                rgba(157, 0, 255, 0.1) 5px,
+                transparent 5px,
+                transparent 10px
+            );
+            border-bottom: 1px solid var(--accent-purple);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--neon-cyan);
+            font-size: 0.9rem;
+            text-align: center;
+            padding: 5px;
+            box-sizing: border-box;
+            transition: border-bottom-color 0.3s ease;
+        }
+        .project-desc-area {
+            height: 60%;
+            width: 100%;
+            padding: 10px;
+            box-sizing: border-box;
+            color: var(--text-muted);
+            display: flex;
+            flex-direction: column;
+        }
+        .project-desc-area h3 {
+            margin: 0 0 10px 0;
+            font-size: 1.2rem;
+            color: #fff;
+            text-shadow: 1px 1px 0px var(--accent-purple);
+        }
+        .project-desc-area p {
+            margin: 0;
+            font-size: 0.9rem;
+            line-height: 1.2;
+            overflow: hidden;
+            display: -webkit-box;
+            line-clamp: 3;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            text-overflow: ellipsis;
+        }
+        .project-card.expand {
+            aspect-ratio: unset;
+            height: auto;
+            overflow: visible;
+        }
+        .project-card.expand .project-desc-area p {
+            display: block;
+            line-clamp: 3;
+            -webkit-line-clamp: unset;
+            overflow: visible;
+        }
+        .project-card.expand .project-desc-area {
+            height: auto;
+        }
+        .read-more-btn {
+            margin-top: auto;
+            padding-top: 6px;
+            background: none;
+            border: none;
+            color: var(--neon-cyan);
+            font-family: 'VT323', monospace;
+            cursor: pointer;
+            font-size: 0.9rem;
+            text-align: left;
+            letter-spacing: 1px;
+        }
+        .project-card::before, .project-card::after {
+            content: '';
+            position: absolute;
+            width: 15px;
+            height: 15px;
+            border: 2px solid transparent;
+            transition: all 0.3s ease;
+            z-index: 5;
+        }
+        .project-card::before {
+            top: 0; left: 0;
+            border-top-color: var(--neon-cyan);
+            border-left-color: var(--neon-cyan);
+            transform: translate(-5px, -5px);
+            opacity: 0;
+        }
+        .project-card::after {
+            bottom: 0; right: 0;
+            border-bottom-color: var(--neon-cyan);
+            border-right-color: var(--neon-cyan);
+            transform: translate(5px, 5px);
+            opacity: 0;
+        }
+        .project-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--neon-cyan);
+            background: rgba(0, 255, 255, 0.05);
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.3), inset 0 0 15px rgba(157, 0, 255, 0.2);
+            z-index: 2;
+        }
+        .project-card:hover::before {
+            transform: translate(0, 0);
+            opacity: 1;
+        }
+        .project-card:hover::after {
+            transform: translate(0, 0);
+            opacity: 1;
+        }
+        .project-card:hover .project-img-area {
+            border-bottom-color: var(--neon-cyan);
+            color: #fff;
+            background: rgba(0, 255, 255, 0.1);
+        }
+        .project-card:hover h3 {
+            color: var(--neon-cyan);
+            text-shadow: 0 0 8px var(--neon-cyan);
+        }
+        @media (max-width: 1200px) {
+            .project-grid { grid-template-columns: repeat(4, 1fr); }
+        }
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2.5rem;
+            }
+            .subtitle {
+                font-size: 1.3rem;
+            }
+            .container {
+                padding-left: 5%;
+            }
+            nav {
+                justify-content: center;
+                padding: 20px;
+            }
+            .nav-links {
+                gap: 20px;
+            }
+            .project-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+        @media (max-width: 480px) {
+            .project-grid {
+                grid-template-columns: repeat(1, 1fr);
+            }
+        }
+        .coming-soon-note {
+            position: absolute;
+            left: 10px;
+            bottom: 0;
+            font-size: 1.1rem;
+            letter-spacing: 1px;
+            color: var(--neon-cyan);
+            opacity: 0.9;
+            text-transform: lowercase;
+            text-shadow: 0 0 8px rgba(0, 255, 255, 0.35);
+        }
+        @media (max-width: 768px) {
+            .coming-soon-note {
+                left: 10px;
+                bottom: -28px;
+                font-size: 0.95rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-image"></div>
+    <div class="bg-overlay"></div>
+    <div class="scanlines"></div>
+    <nav>
+        <div class="nav-links">
+            <a id="nav-intro" class="active" onclick="switchPage('intro')">Introduction <span>+</span></a>
+            <a id="nav-projects" onclick="switchPage('projects')">My Projects <span>+</span></a>
+        </div>
+    </nav>
+    <div class="container">
+        <section id="intro-page" class="active">
+            <h1>
+                My<br>
+                AI<br>
+                Projects
+            </h1>
+            <div class="subtitle">
+                An archive of artificial intelligence exploration and development by <span class="author">Norris Lee</span>.
+            </div>
+            <button class="cta-button" onclick="switchPage('projects')">
+                Explore projects <span class="arrow">></span>
+            </button>
+            <div class="coming-soon-note">MORE PROJECTS COMING SOON...</div>
+        </section>
+        <section id="projects-page">
+            <h2>SYSTEM ARCHIVE</h2>
+            <div class="project-grid" id="project-grid">
+                </div>
+        </section>
+    </div>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        window.switchPage = function(page) {
+            $('#intro-page, #projects-page').removeClass('active');
+            $('#nav-intro, #nav-projects').removeClass('active');
+            setTimeout(() => {
+                if (page === 'intro') {
+                    $('#intro-page').addClass('active');
+                    $('#nav-intro').addClass('active');
+                } else if (page === 'projects') {
+                    $('#projects-page').addClass('active');
+                    $('#nav-projects').addClass('active');
+                }
+            }, 100);
+        };
+        $(document).ready(function() {
+            const $gridContainer = $('#project-grid');
+            var descriptions = [
+                'This is a project on web scrapping and presenting data with AI. In this project, I scrapped the netflix data on the flixpatrol website and made a summary using AI.',
+                'This a project on generating output with an image input. In this project, I fed an AI an image from the internet and make it generate a caption, simulating an Instagram post.',
+                'This is a project on text analysis and json structuring. In this project, I used AI to analyze a paragraph of text with grammatical mistakes, then output a json structure and output them on a web page, highlighting different mistakes like Grammarly.',
+                'This is a project on language learning with AI. In this project, I used AI to generate a 10-lesson language course for a language of choice, then output the course in a structured format, simulating a Duolingo lesson.'
+            ]
+            var routes = [
+                '/netflix',
+                '/instagram',
+                '/grammarly',
+                '/duolingo'
+            ]
+            var names = [
+                'Netflix Analysis',
+                'Instagram Caption Generator',
+                'Grammarly Grammar Correction',
+                'Duolingo Language Course'
+            ]
+            for (let i = 1; i <= 4; i++) {
+                const projectNumber = i < 10 ? '0' + i : i;
+                const $a = $('<a>', {
+                    href: routes[i - 1],
+                    class: 'project-card',
+                    html: `
+                        <div class="project-img-area">
+                            <img src="static/project-${projectNumber}.png" alt="Project ${projectNumber} Image" style="max-width: 100%; max-height: 100%; object-fit: cover;">
+                        </div>
+                        <div class="project-desc-area">
+                            <h3>${names[i - 1]}</h3>
+                            <p>${descriptions[i - 1]} Click to access the project.</p>
+                            <button class="read-more-btn">READ MORE ▾</button>
+                        </div>
+                    `
+                });
+                $gridContainer.append($a);
+            }
+            $gridContainer.on('click', '.read-more-btn', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const $card = $(this).closest('.project-card');
+                    $card.toggleClass('expand');
+                    $(this).text($card.hasClass('expand') ? 'SHOW LESS ▴' : 'READ MORE ▾');
+                });
+        });
+    </script>
+</body>
+</html>

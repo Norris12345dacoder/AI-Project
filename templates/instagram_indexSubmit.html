@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Instagram Post</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .like-button.liked svg {
+            fill: #FF3040;
+            stroke: #FF3040;
+            animation: like-animation 0.5s ease-in-out;
+        }
+        @keyframes like-animation {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(1); }
+        }
+    </style>
+</head>
+<body class="bg-gray-50 flex items-center justify-center min-h-screen">
+    <div class="bg-white border border-gray-300 rounded-xl w-full max-w-sm md:max-w-md my-8">
+        <div class="flex items-center p-4">
+            <img class="h-10 w-10 rounded-full object-cover" src="static/IMG_5129.jpeg" alt="Profile picture">
+            <div class="ml-3 flex-grow">
+                <p class="text-sm font-semibold text-gray-800">Norris Lee</p>
+                <p class="text-xs text-gray-500">Hong Kong</p>
+            </div>
+            <svg class="w-6 h-6 text-gray-600 cursor-pointer" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"></path></svg>
+        </div>
+        <div>
+            <img class="w-full h-auto object-cover" src="static/imageTest.jpg" alt = "test image">
+        </div>
+        <div class="flex justify-between items-center p-4">
+            <div class="flex space-x-4">
+                <button class="like-button">
+                    <svg class="w-7 h-7 text-gray-800 transition-colors duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
+                    </svg>
+                </button>
+                 <svg class="w-7 h-7 text-gray-800 cursor-pointer" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 5.523-4.477 10-10 10S1 17.523 1 12 5.477 2 11 2s10 4.477 10 10z"></path></svg>
+                <svg class="w-7 h-7 text-gray-800 cursor-pointer" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path></svg>
+            </div>
+            <div>
+                 <svg class="w-7 h-7 text-gray-800 cursor-pointer" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"></path></svg>
+            </div>
+        </div>
+        <div class="px-4 pb-2">
+            <p id="likes-count" class="text-sm font-semibold text-gray-800">200M likes</p>
+        </div>
+        <div class="px-4 pb-2">
+            <p class="text-sm text-gray-800">
+                <span class="font-semibold">Norris Lee</span>
+                {{caption}}
+            </p>
+        </div>
+        <div class="px-4 pb-2">
+            <p class="text-sm text-gray-500 cursor-pointer">View all 1M comments</p>
+        </div>
+        <div id="comments-section" class="px-4 pb-2 text-sm space-y-1">
+             <p><span class="font-semibold">Norris_fanpage</span> Wow, incredible shot!</p>
+        </div>
+        <div class="border-t border-gray-200 px-4 py-3">
+             <div class="flex items-center">
+                <input id="comment-input" type="text" class="w-full text-sm bg-transparent border-none focus:ring-0 placeholder-gray-500" placeholder="Add a comment...">
+                <button id="post-button" class="text-sm font-semibold text-blue-500 opacity-50 cursor-not-allowed" disabled>Post</button>
+            </div>
+        </div>
+    </div>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            let isLiked = false;
+            let likesCount = 1023;
+            function toggleLike() {
+                isLiked = !isLiked;
+                $('.like-button').toggleClass('liked', isLiked);
+                likesCount += isLiked ? 1 : -1;
+            }
+            $('.like-button').on('click', toggleLike);
+            $('img[alt="Mountain landscape at sunset"]').on('dblclick', toggleLike);
+            $('#comment-input').on('input', function() {
+                if ($(this).val().trim() !== '') {
+                    $('#post-button').prop('disabled', false).removeClass('opacity-50 cursor-not-allowed');
+                } else {
+                    $('#post-button').prop('disabled', true).addClass('opacity-50 cursor-not-allowed');
+                }
+            });
+            function postComment() {
+                const commentText = $('#comment-input').val().trim();
+                if (commentText) {
+                    const escapedText = $('<div>').text(commentText).html();
+                    const newCommentHTML = `<p><span class="font-semibold">you</span> ${escapedText}</p>`;
+                    $('#comments-section').append(newCommentHTML);
+                    $('#comment-input').val('');
+                    $('#post-button').prop('disabled', true).addClass('opacity-50 cursor-not-allowed');
+                }
+            }
+            $('#post-button').on('click', postComment);
+            $('#comment-input').on('keyup', function(event) {
+                if (event.key === 'Enter') {
+                    postComment();
+                }
+            });
+        });
+    </script>
+    <a href="/instagram" class="fixed bottom-6 left-6 bg-white border border-gray-300 text-gray-700 text-sm font-semibold px-5 py-2 rounded-full shadow-md hover:bg-gray-100 transition-colors duration-200">Back</a>
+    <a href="/" class="fixed bottom-6 right-6 bg-white border border-gray-300 text-gray-700 text-sm font-semibold px-5 py-2 rounded-full shadow-md hover:bg-gray-100 transition-colors duration-200">Main Page</a>
+</body>
+</html>

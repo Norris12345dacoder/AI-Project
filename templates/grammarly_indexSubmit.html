@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Analysis View</title>
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+        <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+        <link href="https://fonts/googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+        <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500&display=swap" rel="stylsheet">
+        <style>
+            :root {
+                --brand-green: #15c39a;
+                --brand-green-dark: #12a884;
+                --brand-bg: #F9FAFC;
+            }
+            body {
+                font-family: 'Inter', sans-serif;
+                background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+                height: 100vh;
+                overflow: hidden;
+                color: #333;
+                position: relative;
+            }
+            body::before {
+                content: '';
+                position: absolute;
+                top: -100px;
+                right: -100px;
+                width: 400px;
+                height: 400px;
+                background: rgba(21, 195, 154, 0.15);
+                border-radius: 50%;
+                filter: blur(80px);
+                z-index: -1;
+            }
+            body::after {
+                content: '';
+                position: absolute;
+                bottom: -100px;
+                left: -100px;
+                width: 500px;
+                height: 500px;
+                background: rgba(60, 130, 246, 0.1);
+                border-radius: 50%;
+                filter: blue(100px);
+                z-index: -1;
+            }
+            .layout-wrapper {
+                display: flex;
+                height: 100vh;
+                width: 100vw;
+                backdrop-filter: blur(10px);
+            }
+            .main-editor {
+                flex: 1;
+                position: relative;
+                overflow-y: auto;
+                display: flex;
+                justify-content: center;
+                padding-top: 40px;
+                padding-bottom: 40px;
+            }
+            .paper {
+                width: 100%;
+                max-width: 900px;
+                background: #fff;
+                min-height: calc(100vh - 80 px);
+                padding: 60px 80px;
+                box-shadow: 0 20px 50px rgba(0, 0, 0, 0.1);
+                position: relative;
+                border-radius: 16px;
+                margin-bottom: 40px;
+                border-top: 4px solid var(--brand-green);
+                display: flex;
+                flex-direction: column;
+                overflow-y: scroll;
+            }
+            .doc-title {
+                border: none;
+                width: 100%;
+                font-size: 24px;
+                font-weight: 600;
+                margin-bottom: 30px;
+                color: #2b2b2b;
+                display: block;
+                border-bottom: 1px solid #eee;
+                padding-bottom: 20px;
+            }
+            .content-area {
+                width: 100%;
+                flex-grow: 1;
+                font-size: 16px;
+                line-height: 1.6;
+                color: #4a4a4a;
+            }
+            .content-area h1, .content-area h2, .content-area h3 {
+                color: #2b2b2b;
+                margin-top: 1.5rem;
+                margin-bottom: 1rem;
+            }
+            .content-area p {
+                margin-bottom: 1rem;
+            }
+            .content-area pre {
+                background: #f4f5f7;
+                padding: 15px;
+                border-radius: 6px;
+                font-family: 'Fira Code', monospace;
+                font-size: 14px;
+                color: #333;
+                overflow-x: auto;
+            }
+            ::-webkit-scrollbar {
+                width: 8px;
+                height: 8px;
+            }
+            ::-webkit-scrollbar-track {
+                background: transparent;
+            }
+            ::-webkit-scrollbar-thumb {
+                background: #ddd;
+                border-radius: 4px;
+            }
+            #tables {
+                overflow-y: scroll;
+            }
+            .highlight-tooltip-red {
+                position: relative;
+                display: inline-block;
+                cursor: pointer;
+                color: #ff1900;
+                background-color:rgba(228, 119, 119, 0.15);
+            }
+            .highlight-tooltip-green {
+                position: relative;
+                display: inline-block;
+                cursor: pointer;
+                color: #00ff6a;
+                background-color: rgba(123, 219, 163, 0.1);
+            }
+            .page-nav-btn {
+                position: fixed;
+                bottom: 20px;
+                background: linear-gradient(135deg, var(--brand-green-dark) 100%);
+                color: white;
+                border: none;
+                padding: 12px 30px;
+                border-radius: 30px;
+                font-weight: 600;
+                font-size: 14px;
+                cursor: pointer;
+                transition: all 0.3s ease;
+                box-shadow: 0 4px 15px rgba(21, 195, 154, 0.4);
+                text-decoration: none;
+                z-index: 200;
+            }
+            .page-nav-btn:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 8px 25px rgba(21, 195, 154, 0.6);
+                color: white;
+            }
+            .page-nav-left {
+                left: 30px;
+            }
+            .page-nav-right {
+                right: 30px;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="layout-wrapper">
+            <div class="main-editor">
+                <div class="paper">
+                    <div class="doc-title">Analysis</div>
+                    <div class="content-area">
+                        <div id="initial_text">The initial text:</div>
+                        <div id="initial-text">{{analysis["text"]["initial"]}}</div>
+                        <br>
+                        <div id="analysis_tone">The tone: {{analysis["tone"]}}</div>
+                        <br>
+                        <div class="table-responsive mb-4" id="tables">
+                            <table class="table table-hover table-bordered align-middle">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th scope="col">Error ID</th>
+                                        <th scope="col">Mistaked text</th>
+                                        <th scope="col">Corrected Text</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for value in analysis["errors"] %}
+                                        <tr>
+                                            <th scope="row">{{value["error_id"]}}</th>
+                                            <td>{{value["mistake_text"]}}</td>
+                                            <td>{{value["correct"]}}</td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                         <div>The mistake text:</div>
+                        <div id="initial_text_show">{{analysis["text"]["mistake_text_html"] | safe}}</div>
+                        <br>
+                        <div>The corrected text:</div>
+                        <div id="corrected_text_show">{{analysis["text"]["corrected_text_html"] | safe}}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <a href="/grammarly" class="page-nav-btn page-nav-left">Back</a>
+        <a href="/" class="page-nav-btn page-nav-right">Main Page</a>
+        <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    </body>
+</html>
