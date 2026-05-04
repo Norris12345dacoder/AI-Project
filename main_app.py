@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, redirect
 from markupsafe import Markup
 import requests
 import netflix
@@ -22,6 +22,7 @@ def netflix_submit():
         analysis = analysis.replace("html", "")
         analysis = analysis.replace("```", "")
         return render_template("netflixIndexSubmit.html", analysis = analysis)
+    return redirect('/netflix')
 @app.route("/instagram", methods = ["GET"])
 def instagram_page():
     if request.method == "GET":
@@ -34,6 +35,7 @@ def instagram_submit():
             f.write(imgData)
         caption = instagram.call(request.form["imageURLinput"], request.form["language"], request.form["length"], request.form["hashtags"])
         return render_template("instagram_indexSubmit.html", caption=caption, imageName="static/imageTest.jpg")
+    return redirect('/instagram')
 @app.route("/grammarly", methods = ["GET"])
 def grammarly_page():
     if request.method == "GET":
@@ -60,6 +62,7 @@ def grammarly_submit():
         print(analysis)
         var1 = "<span class='highlight-tooltip' title='could not'>cannot</span>"
         return render_template("grammarly_indexSubmit.html", analysis = analysis, test=var1)
+    return redirect('/grammarly')
 @app.route("/duolingo", methods = ["GET"])
 def duolingo_page():
     if request.method == "GET":
@@ -74,7 +77,7 @@ def duolingo_submit():
         data = json.loads(data)
         print(data)
         return render_template("duolingo_indexSubmit.html", data = data)
-
+    return redirect('/duolingo')
 
 
 # set FLASK_APP=app
