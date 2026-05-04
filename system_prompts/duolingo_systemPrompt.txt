@@ -70,6 +70,8 @@ Generate questions in the following format and take it as example:
 
 According to the given structure, generate the questions for the given language
 
+For rearranging sentences question type, DO NOT have any puncuations of any language
+
 Generate 10 questions, randomly pick the question type for each question and generate
 
 Output the questions in json format.
