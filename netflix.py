@@ -1,8 +1,8 @@
-import requests, os, random, json
+import requests, os, json
 API_KEY = os.getenv("OPENROUTER_API_KEY")
 # MODEL_ID = "google/gemini-2.0-flash-001"
 MODEL_ID = "google/gemini-2.5-flash"
-PRESET_ID = "@preset/netflix-analysis"
+# PRESET_ID = "@preset/netflix-analysis"
 # URL = "https://openrouter.ai/api/v1/chat/completions"
 URL = "https://ai.hackclub.com/proxy/v1/chat/completions"
 def call(file, type):

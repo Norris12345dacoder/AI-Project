@@ -45,7 +45,8 @@ def getDataByCountry(country):
     return fullDictionary
 allDictionary = {}
 for i in range(len(countries)):
-    print(getDataByCountry(countries[i]))
-    allDictionary[countries[i]] = getDataByCountry(countries[i])
+    result = getDataByCountry(countries[i])
+    print(result)
+    allDictionary[countries[i]] = result
 with open("data2.json", "w") as file:
     json.dump(allDictionary, file)

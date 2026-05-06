@@ -7,6 +7,7 @@ import grammarly
 import duolingo
 import re
 import json
+from urllib.parse import urlparse
 app = Flask(__name__)
 @app.route("/")
 def hellow_world():
@@ -19,8 +20,9 @@ def netflix_page():
 def netflix_submit():
     if request.method == "POST":
         analysis = netflix.call("netflix_data.json", request.form["type"])
-        analysis = analysis.replace("html", "")
-        analysis = analysis.replace("```", "")
+        fence_match = re.search(r"```(?:html)?\s*([\s\S]*?)```", analysis, re.IGNORECASE)
+        if fence_match:
+            analysis = fence_match.group(1).strip()
         return render_template("netflixIndexSubmit.html", analysis = analysis)
     return redirect('/netflix')
 @app.route("/instagram", methods = ["GET"])
@@ -30,7 +32,23 @@ def instagram_page():
 @app.route("/instagramSubmit", methods = ["POST", "GET"])
 def instagram_submit():
     if request.method == "POST":
-        imgData = requests.get(request.form["imageURLinput"], headers = {"User-Agent": "Monzilla/5.0"}).content
+        image_url = request.form["imageURLinput"]
+        parsed = urlparse(image_url)
+        if parsed.scheme not in ("http", "https"):
+            return "Invalid URL scheme", 400
+        import socket
+        try:
+            hostname = parsed.hostname
+            ip = socket.gethostbyname(hostname)
+        except Exception:
+            return "Could not resolve hostname", 400
+        import ipaddress
+        addr = ipaddress.ip_address(ip)
+        if addr.is_private or addr.is_loopback or addr.is_link_local:
+            return "Private URLs are not allowed", 403
+        imgData = requests.get(image_url, headers = {"User-agent": "Monzilla/5.0"}, timeout = 10).content
+        if not imgData[:4] in (b'\xff\xd8\xff\xe0', b'\xff\xd8\xff\xe1', b'\x89PNG', b'GIF8', b'WEBP'):
+            return "URL does not point to a valid image", 400
         with open("static/imageTest.jpg", "wb") as f:
             f.write(imgData)
         caption = instagram.call(request.form["imageURLinput"], request.form["language"], request.form["length"], request.form["hashtags"])

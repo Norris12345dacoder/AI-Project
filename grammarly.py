@@ -1,8 +1,8 @@
-import requests, os, random, json
+import requests, os, json
 API_KEY = os.getenv("OPENROUTER_API_KEY")
 # MODEL_ID = "anthropic/claude-haiku-4.5"
 MODEL_ID = "google/gemini-2.5-flash"
-PRESET_ID = "@preset/grammar"
+# PRESET_ID = "@preset/grammar"
 # URL = "https://openrouter.ai/api/v1/chat/completions"
 URL = "https://ai.hackclub.com/proxy/v1/chat/completions"
 def call(text):
