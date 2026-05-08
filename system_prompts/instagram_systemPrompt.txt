@@ -6,4 +6,5 @@ The response must be at least 100 words
 - Estimate the target audience for the product and how to draw interest/attention
 - Determine the suitable tone to promote the product
 Use the above information to generate an Instagram caption, use different strategies (diminishing other competitors’ similar products, witty rhyme schemes, exaggerations, capital letters etc.), use hashtags and unique fonts styles and font sizes
+Make sure the caption is generated according to the given language, length and the amount of hashtags
 Make it so that people want to buy the product, don't just describe the product

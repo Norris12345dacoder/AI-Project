@@ -22,7 +22,7 @@ def netflix_submit():
         analysis = netflix.call("netflix_data.json", request.form["type"])
         fence_match = re.search(r"```(?:html)?\s*([\s\S]*?)```", analysis, re.IGNORECASE)
         if fence_match:
-            analysis = fence_match.group(1).strip()
+            analysis = fence_match.group(1).strip
         return render_template("netflixIndexSubmit.html", analysis = analysis)
     return redirect('/netflix')
 @app.route("/instagram", methods = ["GET"])
