@@ -4,3 +4,4 @@ beautifulsoup4
 selenium
 MarkupSafe
 gunicorn
+json-repair

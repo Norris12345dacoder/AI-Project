@@ -11,8 +11,6 @@ If there is/are grammatical mistakes, point out those mistakes. Also point out t
 
 Lastly, generate a corrected version of the text.
 
-Confirm your response that it's following the instructions given to you.
-
 Give a statistic about the error corrections:
 - Number of each grammatical mistakes (ranked in descending order)
 
@@ -69,10 +67,6 @@ For "errors", it is a list that contains all the errors object. Inside each obje
 For "statistics", it is the statistics of the grammatical mistakes of the text. Rank the amount of grammatical errors for each grammatical mistake and put them in "statistics". Format: "[the grammatical mistake]": [the number of times that mistake happened.]
 
 For "text", put the original text in "initial", put the corrected text in "corrected".
-
-Also add "mistake_text_html" in "text", the value of it will be the value in "initial", but for every error found, replace the errored text with <span class='highlight-tooltip-red' title='[the errored text]'>[the errored text]</span>
-
-Also add "corrected_text_html" in "text", the value of it will be the value in "corrected", but for corrected error, replace the corrected text with <span class='highlight-tooltip-green' title='[the corrected text]'>[the corrected text]</span>
 
 
 

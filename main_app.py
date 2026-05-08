@@ -7,7 +7,142 @@ import grammarly
 import duolingo
 import re
 import json
+import importlib
+import html
 from urllib.parse import urlparse
+
+repair_json = None
+
+
+def _repair_llm_json(candidate_json):
+    global repair_json
+    if repair_json is None:
+        try:
+            repair_json = importlib.import_module("json_repair").repair_json
+        except Exception:
+            return None
+    return repair_json(candidate_json)
+
+
+def _extract_replacement_text(correct_value):
+    if not isinstance(correct_value, str):
+        return ""
+    single_quote_match = re.search(r"'([^']+)'", correct_value)
+    if single_quote_match:
+        return single_quote_match.group(1)
+    double_quote_match = re.search(r'"([^"]+)"', correct_value)
+    if double_quote_match:
+        return double_quote_match.group(1)
+    return correct_value
+
+
+def _find_error_range(base_text, error_obj, cursor):
+    if not isinstance(base_text, str) or not isinstance(error_obj, dict):
+        return None
+
+    start = error_obj.get("start_char")
+    end = error_obj.get("end_char")
+    mistake_text = error_obj.get("mistake_text")
+
+    # Prefer model-provided character positions if they are valid and in order.
+    if isinstance(start, int) and isinstance(end, int):
+        if cursor <= start < end <= len(base_text):
+            segment = base_text[start:end]
+            if not isinstance(mistake_text, str) or not mistake_text:
+                return (start, end)
+            if segment == mistake_text or segment.lower() == mistake_text.lower():
+                return (start, end)
+
+    # Fall back to matching the mistake text from the current cursor.
+    if isinstance(mistake_text, str) and mistake_text:
+        found = base_text.find(mistake_text, cursor)
+        if found != -1:
+            return (found, found + len(mistake_text))
+        # Case-insensitive fallback for minor casing drift.
+        found = base_text.lower().find(mistake_text.lower(), cursor)
+        if found != -1:
+            return (found, found + len(mistake_text))
+
+    return None
+
+
+def _build_mistake_html(base_text, errors):
+    if not isinstance(base_text, str) or not isinstance(errors, list):
+        return ""
+    result = []
+    cursor = 0
+    ordered_errors = sorted(
+        [err for err in errors if isinstance(err, dict)],
+        key=lambda err: err.get("start_char", 0),
+    )
+    for err in ordered_errors:
+        error_range = _find_error_range(base_text, err, cursor)
+        if error_range is None:
+            continue
+        start, end = error_range
+        result.append(html.escape(base_text[cursor:start]))
+        mistake_segment = html.escape(base_text[start:end])
+        tooltip = html.escape(str(err.get("correct", "")), quote=True)
+        result.append(
+            f"<span class='highlight-tooltip-red' title='{tooltip}'>{mistake_segment}</span>"
+        )
+        cursor = end
+    result.append(html.escape(base_text[cursor:]))
+    return "".join(result)
+
+
+def _build_corrected_html(base_text, errors):
+    if not isinstance(base_text, str) or not isinstance(errors, list):
+        return ""
+    result = []
+    cursor = 0
+    ordered_errors = sorted(
+        [err for err in errors if isinstance(err, dict)],
+        key=lambda err: err.get("start_char", 0),
+    )
+    for err in ordered_errors:
+        error_range = _find_error_range(base_text, err, cursor)
+        if error_range is None:
+            continue
+        start, end = error_range
+        result.append(html.escape(base_text[cursor:start]))
+        replacement_text = _extract_replacement_text(err.get("correct", ""))
+        if not replacement_text:
+            replacement_text = base_text[start:end]
+        replacement_text = html.escape(str(replacement_text))
+        tooltip = html.escape(str(base_text[start:end]), quote=True)
+        result.append(
+            f"<span class='highlight-tooltip-green' title='{tooltip}'>{replacement_text}</span>"
+        )
+        cursor = end
+    result.append(html.escape(base_text[cursor:]))
+    return "".join(result)
+
+
+def _build_corrected_html_from_corrected(corrected_text, errors):
+    if not isinstance(corrected_text, str) or not isinstance(errors, list):
+        return ""
+    result = []
+    cursor = 0
+    for err in [e for e in errors if isinstance(e, dict)]:
+        replacement_text = _extract_replacement_text(err.get("correct", ""))
+        if not replacement_text:
+            continue
+        found = corrected_text.find(replacement_text, cursor)
+        if found == -1:
+            found = corrected_text.lower().find(replacement_text.lower(), cursor)
+        if found == -1:
+            continue
+        end = found + len(replacement_text)
+        result.append(html.escape(corrected_text[cursor:found]))
+        tooltip = html.escape(str(err.get("mistake_text", "")), quote=True)
+        result.append(
+            f"<span class='highlight-tooltip-green' title='{tooltip}'>{html.escape(corrected_text[found:end])}</span>"
+        )
+        cursor = end
+    result.append(html.escape(corrected_text[cursor:]))
+    return "".join(result)
+
 app = Flask(__name__)
 @app.route("/")
 def hellow_world():
@@ -75,8 +210,26 @@ def grammarly_submit():
         start = text.find("{")
         if start == -1:
             raise ValueError("No JSON object found in the response")
+        candidate_json = text[start:]
         decoder = json.JSONDecoder()
-        analysis, _ = decoder.raw_decode(text[start:])
+        try:
+            analysis, _ = decoder.raw_decode(candidate_json)
+        except json.JSONDecodeError:
+            repaired_json = _repair_llm_json(candidate_json)
+            if repaired_json is None:
+                raise
+            analysis = json.loads(repaired_json)
+        text_data = analysis.get("text") if isinstance(analysis, dict) else None
+        if not isinstance(text_data, dict):
+            text_data = {}
+            analysis["text"] = text_data
+        initial_text = text_data.get("initial", "")
+        corrected_text = text_data.get("corrected", "")
+        errors = analysis.get("errors", []) if isinstance(analysis, dict) else []
+        text_data["mistake_text_html"] = _build_mistake_html(initial_text, errors)
+        text_data["corrected_text_html"] = _build_corrected_html_from_corrected(corrected_text, errors)
+        if not text_data["corrected_text_html"]:
+            text_data["corrected_text_html"] = html.escape(corrected_text)
         print(analysis)
         var1 = "<span class='highlight-tooltip' title='could not'>cannot</span>"
         return render_template("grammarly_indexSubmit.html", analysis = analysis, test=var1)
