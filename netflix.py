@@ -35,9 +35,15 @@ def call(file, type):
           ]
         }
       ]
-    })
+    }),
+    timeout = (5, 60)
   )
-  responseMSG = response.json()
+  if response.status_code >= 400:
+    raise RuntimeError(f"Hack Club at HTTP {response.status_code}: {response.text[:300]}")
+  try:
+    responseMSG = response.json()
+  except json.JSONDecodeError:
+    raise RuntimeError(f"Non-JSON response from API: {response.text[:300]}")
   print("API response: ", responseMSG)
   if "error" in responseMSG:
     return f"API Error: {responseMSG['error']}"
