@@ -138,6 +138,13 @@
     <div class="main-container">
         <div class="upload-card">
             <div id="uploadSection">
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                {% for category, message in messages %}
+                <div class="alert alert-warning mb-3" role="alert">{{ message }}</div>
+                {% endfor %}
+                {% endif %}
+                {% endwith %}
                 <h1 class="upload-title">Select Category</h1>
                 <form id="uploadForm" method="POST" action="/netflixSubmit">
                     <div class="d-flex justify-content-center gap-3 mb-4">

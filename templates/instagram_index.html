@@ -18,6 +18,13 @@
 <body class="bg-gray-100 dark:bg-gray-900 text-gray-800 dark:text-gray-200 flex items-center justify-center min-h-screen transition-colors duration-300">
     <form action = "/instagramSubmit" method = "POST">
         <div class="w-full max-w-xl mx-auto p-6 md:p-8 bg-white dark:bg-gray-800 rounded-xl shadow-2xl space-y-6">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="px-4 py-3 rounded-lg border border-amber-300 bg-amber-100 text-amber-900" role="alert">{{ message }}</div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
             <div class="text-center">
                 <h1 class="text-3xl font-bold text-gray-900 dark:text-white">Image Viewer</h1>
                 <p class="text-gray-500 dark:text-gray-400 mt-2">Enter an image URL to display it below.</p>

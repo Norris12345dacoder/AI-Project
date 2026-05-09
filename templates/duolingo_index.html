@@ -120,6 +120,13 @@
 </head>
 <body>
   <div class="container">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div style="width: 100%; margin-bottom: 12px; padding: 12px 14px; border-radius: 12px; background: #fff4e5; color: #8a4b00; border: 1px solid #ffd59a; font-size: 14px;">{{ message }}</div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
     <div class="top-half">
        <svg class="owl-svg" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
          <path d="M 20 45 C 20 15 80 15 80 45 C 80 75 70 90 50 90 C 30 90 20 75 20 45 Z" fill="#58cc02"/>

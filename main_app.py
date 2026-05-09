@@ -1,5 +1,5 @@
-from flask import Flask, render_template, request, redirect
-from markupsafe import Markup
+from flask import Flask, render_template, request, redirect, flash
+import os
 import requests
 import netflix
 import instagram
@@ -10,10 +10,7 @@ import json
 import importlib
 import html
 from urllib.parse import urlparse
-
 repair_json = None
-
-
 def _repair_llm_json(candidate_json):
     global repair_json
     if repair_json is None:
@@ -22,8 +19,6 @@ def _repair_llm_json(candidate_json):
         except Exception:
             return None
     return repair_json(candidate_json)
-
-
 def _extract_replacement_text(correct_value):
     if not isinstance(correct_value, str):
         return ""
@@ -34,17 +29,12 @@ def _extract_replacement_text(correct_value):
     if double_quote_match:
         return double_quote_match.group(1)
     return correct_value
-
-
 def _find_error_range(base_text, error_obj, cursor):
     if not isinstance(base_text, str) or not isinstance(error_obj, dict):
         return None
-
     start = error_obj.get("start_char")
     end = error_obj.get("end_char")
     mistake_text = error_obj.get("mistake_text")
-
-    # Prefer model-provided character positions if they are valid and in order.
     if isinstance(start, int) and isinstance(end, int):
         if cursor <= start < end <= len(base_text):
             segment = base_text[start:end]
@@ -52,20 +42,14 @@ def _find_error_range(base_text, error_obj, cursor):
                 return (start, end)
             if segment == mistake_text or segment.lower() == mistake_text.lower():
                 return (start, end)
-
-    # Fall back to matching the mistake text from the current cursor.
     if isinstance(mistake_text, str) and mistake_text:
         found = base_text.find(mistake_text, cursor)
         if found != -1:
             return (found, found + len(mistake_text))
-        # Case-insensitive fallback for minor casing drift.
         found = base_text.lower().find(mistake_text.lower(), cursor)
         if found != -1:
             return (found, found + len(mistake_text))
-
     return None
-
-
 def _build_mistake_html(base_text, errors):
     if not isinstance(base_text, str) or not isinstance(errors, list):
         return ""
@@ -89,8 +73,6 @@ def _build_mistake_html(base_text, errors):
         cursor = end
     result.append(html.escape(base_text[cursor:]))
     return "".join(result)
-
-
 def _build_corrected_html(base_text, errors):
     if not isinstance(base_text, str) or not isinstance(errors, list):
         return ""
@@ -117,8 +99,6 @@ def _build_corrected_html(base_text, errors):
         cursor = end
     result.append(html.escape(base_text[cursor:]))
     return "".join(result)
-
-
 def _build_corrected_html_from_corrected(corrected_text, errors):
     if not isinstance(corrected_text, str) or not isinstance(errors, list):
         return ""
@@ -142,8 +122,11 @@ def _build_corrected_html_from_corrected(corrected_text, errors):
         cursor = end
     result.append(html.escape(corrected_text[cursor:]))
     return "".join(result)
-
 app = Flask(__name__)
+app.config["SECRET_KEY"] = os.getenv("FLASK_SECRET_KEY", "dev-secret-key")
+def _warn_and_go_back(message, fallback_route):
+    flash(f"{message} Try again.", "warning")
+    return redirect(request.referrer or fallback_route)
 @app.route("/")
 def hellow_world():
     return render_template("main_page_index.html")
@@ -154,11 +137,14 @@ def netflix_page():
 @app.route("/netflixSubmit", methods = ["POST", "GET"])
 def netflix_submit():
     if request.method == "POST":
-        analysis = netflix.call("netflix_data.json", request.form["type"])
-        fence_match = re.search(r"```(?:html)?\s*([\s\S]*?)```", analysis, re.IGNORECASE)
-        if fence_match:
-            analysis = fence_match.group(1).strip
-        return render_template("netflixIndexSubmit.html", analysis = analysis)
+        try:
+            analysis = netflix.call("netflix_data.json", request.form["type"])
+            fence_match = re.search(r"```(?:html)?\s*([\s\S]*?)```", analysis, re.IGNORECASE)
+            if fence_match:
+                analysis = fence_match.group(1).strip()
+            return render_template("netflixIndexSubmit.html", analysis = analysis)
+        except Exception as e:
+            return _warn_and_go_back(str(e), "/netflix")
     return redirect('/netflix')
 @app.route("/instagram", methods = ["GET"])
 def instagram_page():
@@ -167,27 +153,30 @@ def instagram_page():
 @app.route("/instagramSubmit", methods = ["POST", "GET"])
 def instagram_submit():
     if request.method == "POST":
-        image_url = request.form["imageURLinput"]
-        parsed = urlparse(image_url)
-        if parsed.scheme not in ("http", "https"):
-            return "Invalid URL scheme", 400
-        import socket
         try:
-            hostname = parsed.hostname
-            ip = socket.gethostbyname(hostname)
-        except Exception:
-            return "Could not resolve hostname", 400
-        import ipaddress
-        addr = ipaddress.ip_address(ip)
-        if addr.is_private or addr.is_loopback or addr.is_link_local:
-            return "Private URLs are not allowed", 403
-        imgData = requests.get(image_url, headers = {"User-agent": "Monzilla/5.0"}, timeout = 10).content
-        if not imgData[:4] in (b'\xff\xd8\xff\xe0', b'\xff\xd8\xff\xe1', b'\x89PNG', b'GIF8', b'WEBP'):
-            return "URL does not point to a valid image", 400
-        with open("static/imageTest.jpg", "wb") as f:
-            f.write(imgData)
-        caption = instagram.call(request.form["imageURLinput"], request.form["language"], request.form["length"], request.form["hashtags"])
-        return render_template("instagram_indexSubmit.html", caption=caption, imageName="static/imageTest.jpg")
+            image_url = request.form["imageURLinput"]
+            parsed = urlparse(image_url)
+            if parsed.scheme not in ("http", "https"):
+                raise ValueError("Invalid URL scheme")
+            import socket
+            try:
+                hostname = parsed.hostname
+                ip = socket.gethostbyname(hostname)
+            except Exception:
+                raise ValueError("Could not resolve hostname")
+            import ipaddress
+            addr = ipaddress.ip_address(ip)
+            if addr.is_private or addr.is_loopback or addr.is_link_local:
+                raise ValueError("Private URLs are not allowed")
+            imgData = requests.get(image_url, headers = {"User-agent": "Monzilla/5.0"}, timeout = 10).content
+            if not imgData[:4] in (b'\xff\xd8\xff\xe0', b'\xff\xd8\xff\xe1', b'\x89PNG', b'GIF8', b'WEBP'):
+                raise ValueError("URL does not point to a valid image")
+            with open("static/imageTest.jpg", "wb") as f:
+                f.write(imgData)
+            caption = instagram.call(request.form["imageURLinput"], request.form["language"], request.form["length"], request.form["hashtags"])
+            return render_template("instagram_indexSubmit.html", caption=caption, imageName="static/imageTest.jpg")
+        except Exception as e:
+            return _warn_and_go_back(str(e), "/instagram")
     return redirect('/instagram')
 @app.route("/grammarly", methods = ["GET"])
 def grammarly_page():
@@ -196,43 +185,48 @@ def grammarly_page():
 @app.route("/grammarlySubmit", methods = ["POST", "GET"])
 def grammarly_submit():
     if request.method == "POST":
-        raw = grammarly.call(request.form["text"])
-        print(raw)
-        if isinstance(raw, list):
-            raw = "".join(
-                item.get("text", "") if isinstance(item, dict) else str(item)
-                for item in raw
-            )
-        text = str(raw).strip()
-        fence = re.search(r"```(?:json)?\s*([\s\S]*?)```", text, re.IGNORECASE)
-        if fence:
-            text = fence.group(1).strip()
-        start = text.find("{")
-        if start == -1:
-            raise ValueError("No JSON object found in the response")
-        candidate_json = text[start:]
-        decoder = json.JSONDecoder()
         try:
-            analysis, _ = decoder.raw_decode(candidate_json)
-        except json.JSONDecodeError:
-            repaired_json = _repair_llm_json(candidate_json)
-            if repaired_json is None:
-                raise
-            analysis = json.loads(repaired_json)
-        text_data = analysis.get("text") if isinstance(analysis, dict) else None
-        if not isinstance(text_data, dict):
-            text_data = {}
-            analysis["text"] = text_data
-        initial_text = text_data.get("initial", "")
-        corrected_text = text_data.get("corrected", "")
-        errors = analysis.get("errors", []) if isinstance(analysis, dict) else []
-        text_data["mistake_text_html"] = _build_mistake_html(initial_text, errors)
-        text_data["corrected_text_html"] = _build_corrected_html_from_corrected(corrected_text, errors)
-        if not text_data["corrected_text_html"]:
-            text_data["corrected_text_html"] = html.escape(corrected_text)
-        print(analysis)
-        var1 = "<span class='highlight-tooltip' title='could not'>cannot</span>"
-        return render_template("grammarly_indexSubmit.html", analysis = analysis, test=var1)
+            raw = grammarly.call(request.form["text"])
+            print(raw)
+            if isinstance(raw, list):
+                raw = "".join(
+                    item.get("text", "") if isinstance(item, dict) else str(item)
+                    for item in raw
+                )
+            text = str(raw).strip()
+            fence = re.search(r"```(?:json)?\s*([\s\S]*?)```", text, re.IGNORECASE)
+            if fence:
+                text = fence.group(1).strip()
+            start = text.find("{")
+            if start == -1:
+                raise ValueError("No JSON object found in the response")
+            candidate_json = text[start:]
+            decoder = json.JSONDecoder()
+            try:
+                analysis, _ = decoder.raw_decode(candidate_json)
+            except json.JSONDecodeError:
+                repaired_json = _repair_llm_json(candidate_json)
+                if repaired_json is None:
+                    raise
+                analysis = json.loads(repaired_json)
+            if not isinstance(analysis, dict):
+                raise ValueError(f"Unexpected Grammarly response type: {type(analysis).__name__}")
+            text_data = analysis.setdefault("text", {})
+            if not isinstance(text_data, dict):
+                analysis["text"] = {}
+                text_data = analysis["text"]
+            initial_text = text_data.get("initial", "")
+            corrected_text = text_data.get("corrected", "")
+            errors = analysis.get("errors", []) if isinstance(analysis, dict) else []
+            text_data["mistake_text_html"] = _build_mistake_html(initial_text, errors)
+            text_data["corrected_text_html"] = _build_corrected_html_from_corrected(corrected_text, errors)
+            if not text_data["corrected_text_html"]:
+                text_data["corrected_text_html"] = html.escape(corrected_text)
+            print(analysis)
+            var1 = "<span class='highlight-tooltip' title='could not'>cannot</span>"
+            return render_template("grammarly_indexSubmit.html", analysis = analysis, test=var1)
+        except Exception as e:
+            return _warn_and_go_back(str(e), "/grammarly")
     return redirect('/grammarly')
 @app.route("/duolingo", methods = ["GET"])
 def duolingo_page():
@@ -241,13 +235,25 @@ def duolingo_page():
 @app.route("/duolingoSubmit", methods = ["POST", "GET"])
 def duolingo_submit():
     if request.method == "POST":
-        language = request.form.get("language")
-        data = duolingo.call(language)
-        if data.strip().startswith("```"):
-            data = data.strip().removeprefix("```json").removeprefix("```").removesuffix("```").strip()
-        data = json.loads(data)
-        print(data)
-        return render_template("duolingo_indexSubmit.html", data = data)
+        try:
+            language = request.form.get("language")
+            data = duolingo.call(language)
+            if data.strip().startswith("```"):
+                data = data.strip().removeprefix("```json").removeprefix("```").removesuffix("```").strip()
+            try:
+                data = json.loads(data)
+            except json.JSONDecodeError:
+                repaired = _repair_llm_json(data)
+                if repaired is None:
+                    raise ValueError("Invalid JSON returned from Duolingo model")
+                try:
+                    data = json.loads(repaired)
+                except json.JSONDecodeError:
+                    raise ValueError("Invalid JSON returned from Duolingo model")
+            print(data)
+            return render_template("duolingo_indexSubmit.html", data = data)
+        except Exception as e:
+            return _warn_and_go_back(str(e), "/duolingo")
     return redirect('/duolingo')
 
 
