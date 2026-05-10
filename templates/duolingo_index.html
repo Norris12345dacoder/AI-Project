@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Learn a Language</title>
+<title>Duolingo Course Generator</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@700;800&display=swap');
   * {
@@ -116,6 +116,36 @@
     transform: translateY(4px);
     box-shadow: 0 0 0 #58a700;
   }
+  .submit-row {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+  .loading-indicator {
+    display: none;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    font-size: 14px;
+    color: #4b4b4b;
+    font-weight: 700;
+    text-transform: lowercase;
+  }
+  .spinner {
+    width: 16px;
+    height: 16px;
+    border: 2px solid #dcdcdc;
+    border-top-color: #58cc02;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+  @keyframes spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
 </style>
 </head>
 <body>
@@ -140,12 +170,11 @@
          <path d="M 56 88 C 56 94 66 94 66 88 Z" fill="#ffc800"/>
        </svg>
     </div>
-    <form action="/duolingoSubmit" method="POST">
+    <form action="/duolingoSubmit" method="POST" id="duolingoForm">
     <div class="bottom-half">
       <h1>I want to learn...</h1>
-      <form action="/duolingoSubmit" method="POST">
       <div class="select-container">
-          <select id="language" aria-label="Select a language" name="language">
+          <select id="language" aria-label="Select a language" name="language" required oninvalid="this.setCustomValidity('Please select a language')" oninput="this.setCustomValidity('')">
             <option value="" disabled selected>Choose a language</option>
             <option value="Spanish">Spanish</option>
             <option value="French">French</option>
@@ -159,9 +188,52 @@
           <path d="M7 10l5 5 5-5z" />
         </svg>
       </div>
-      <button class="btn">Continue</button>
-      </form>
+      <div class="submit-row">
+        <button class="btn" type="submit" id="duolingoSubmitBtn">Continue</button>
+        <span class="loading-indicator" id="duolingoLoading" aria-live="polite">
+          <span class="spinner" aria-hidden="true"></span>
+          awaiting AI response
+        </span>
+      </div>
     </div>
+    </form>
   </div>
+  <script>
+    (
+      function() {
+        const form = document.getElementById('duolingoForm');
+        const btn = document.getElementById('duolingoSubmitBtn');
+        const loading = document.getElementById('duolingoLoading');
+        const language = document.getElementById('language');
+        const storage = 'duolingo.language';
+        let isSubmitting = false;
+        function restoreUIState() {
+          isSubmitting = false;
+          btn.disabled = false;
+          loading.style.display = 'none';
+          form.reset();
+        }
+        form.addEventListener('submit', function (e) {
+          if (isSubmitting) {
+            e.preventDefault();
+            return;
+          }
+          if (!form.checkValidity()) {
+            return;
+          }
+          e.preventDefault();
+          isSubmitting = true;
+          btn.disabled = true;
+          loading.style.display = 'flex';
+          requestAnimationFrame(function () {
+            setTimeout(function () {
+              form.submit();
+            }, 50);
+          });
+        });
+        window.addEventListener('pageshow', restoreUIState);
+        restoreUIState();
+      })();
+  </script>
 </body>
 </html>

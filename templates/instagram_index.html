@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Image URL Submitter</title>
+    <title>Instagram Caption Generator</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -12,6 +12,41 @@
     <style>
         body {
             font-family: 'Inter', sans-serif;
+        }
+        .submit-area {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            z-index: 50;
+        }
+        .loading-indicator {
+            display: none;
+            align-items: center;
+            gap: 0.5rem;
+            color: #1f2937;
+            background: rgba(255, 255, 255, 0.9);
+            border: 1px solid #d1d5db;
+            border-radius: 0.5rem;
+            padding: 0.5rem 0.75rem;
+            font-size: 0.875rem;
+            font-weight: 600;
+            text-transform: lowercase;
+        }
+        .spinner {
+            width: 14px;
+            height: 14px;
+            border-radius: 9999px;
+            border: 2px solid #cbd5e1;
+            border-top-color: #2563eb;
+            animation: spin 0.8s linear infinite;
+        }
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
         }
     </style>
 </head>
@@ -74,16 +109,36 @@
                 </div>
             </div>
         </div>
-        <button class="fixed bottom-8 right-8 px-6 py-3 bg-gray-600 text-white font-semibold rounded-lg shadow-md hover:bg-gray-700 focus:outline-none focus:ring-4 focus:ring-gray-500/50 dark:focus:ring-gray-400/50 transition" type = "submit" id = "Submit">
-            Submit
-        </button>
+        <div class="submit-area">
+            <button class="px-6 py-3 bg-gray-600 text-white font-semibold rounded-lg shadow-md hover:bg-gray-700 focus:outline-none focus:ring-4 focus:ring-gray-500/50 dark:focus:ring-gray-400/50 transition" type="submit" id="Submit">
+                Submit
+            </button>
+            <span class="loading-indicator" id="instagramLoading" aria-live="polite">
+                <span class="spinner" aria-hidden="true"></span>
+                awaiting AI response
+            </span>
+        </div>
         <script>
             $(document).ready(function(){
+                const $form = $('form');
+                const $submitBtn = $('#Submit');
+                const $loading = $('#instagramLoading');
+                const $imageInput = $('#imageUrlInput');
+                const $imageDisplay = $('#imageDisplay');
+                const $placeholderText = $('#placeholderText');
+
+                function resetUiState() {
+                    $form.trigger('reset');
+                    $submitBtn.prop('disabled', false).css('opacity', '');
+                    $loading.hide();
+                    $imageDisplay.attr('src', '').addClass('hidden');
+                    $placeholderText.removeClass('hidden').text('Image will appear here');
+                }
                 function updateImage() {
-                    const imageUrl = $('#imageUrlInput').val().trim();
+                    const imageUrl = $imageInput.val().trim();
                     if (imageUrl) {
-                        $('#imageDisplay').attr('src', imageUrl).removeClass('hidden');
-                        $('#placeholderText').addClass('hidden');
+                        $imageDisplay.attr('src', imageUrl).removeClass('hidden');
+                        $placeholderText.addClass('hidden');
                     }
                 }
                 $('#loadImageBtn').on('click', function(event){
@@ -96,10 +151,16 @@
                         updateImage();
                     }
                 });
-                $('#imageDisplay').on('error', function() {
+                $imageDisplay.on('error', function() {
                     $(this).addClass('hidden');
-                    $('#placeholderText').removeClass('hidden').text('Could not load image. Please check the URL.');
+                    $placeholderText.removeClass('hidden').text('Could not load image. Please check the URL.');
                 });
+                $form.on('submit', function() {
+                    $submitBtn.prop('disabled', true).css('opacity', '0.8');
+                    $loading.css('display', 'inline-flex');
+                });
+                $(window).on('pageshow', resetUiState);
+                resetUiState();
             });
         </script>
     </form>
