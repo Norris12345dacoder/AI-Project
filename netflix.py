@@ -8,7 +8,6 @@ URL = "https://ai.hackclub.com/proxy/v1/chat/completions"
 def call(file, type):
   with open("system_prompts/netflix_systemPrompt.txt", "r") as f:
     system_prompt = f.read()
-    system_prompt = system_prompt.replace("# System prompt\n\n## This is the system prompt of my preset in Openrouter for the Netflix web scrapping project\n\n", "")
   with open(file, "r") as f:
     data = f.read()
   response = requests.post(
