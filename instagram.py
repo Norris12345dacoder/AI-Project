@@ -9,12 +9,12 @@ URL = "https://ai.hackclub.com/proxy/v1/chat/completions"
 def call(imageURL, language, length, hashtags):
   with open("system_prompts/instagram_systemPrompt.txt", "r") as f:
     system_prompt = f.read()
-  captionLength = 50
+    captionLength = 50
   if length == "Long":
     captionLength = 100
   elif length == "Short":
     captionLength = 20
-  hashtagNo = 5
+    hashtagNo = 5
   if hashtags == "More":
     hashtagNo = 10
   elif hashtags == "Less":

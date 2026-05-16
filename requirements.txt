@@ -5,3 +5,4 @@ selenium
 MarkupSafe
 gunicorn
 json-repair
+bleach

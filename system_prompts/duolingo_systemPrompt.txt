@@ -6,7 +6,7 @@ Here are the following question types:
 - matching (about 4-6 pairs)
 - multiple choice questions (the question itself in English, only the key word for testing users in the given foreign language)
 
-Generate questions in the following format and take it as example:
+Here are 2 different examples for your reference (first one in Japanese, second one in Cantonese). Generate questions in the following format and take it as example:
 {
     "name": "Duolingo",
     "questions": [
@@ -68,10 +68,158 @@ Generate questions in the following format and take it as example:
     ]
 }
 
+
+
+{
+    "name": "Duolingo",
+    "questions": [
+        {
+            "question_no": 1,
+            "question_type": "fill in the blanks",
+            "question": "我哋喺餐廳 ___ 緊飯。",
+            "choices": [
+                "A. 睇",
+                "B. 食",
+                "C. 聽",
+                "D. 行"
+            ],
+            "answer": "B"
+        },
+        {
+            "question_no": 2,
+            "question_type": "multiple choice",
+            "question": "What does 「多謝」 mean?",
+            "choices": [
+                "Thank you",
+                "Goodbye",
+                "Sorry",
+                "Excuse me"
+            ],
+            "answer": "Thank you"
+        },
+        {
+            "question_no": 3,
+            "question_type": "rearrange sentences",
+            "question": "Rearrange these parts.",
+            "choices": [
+                "去",
+                "我",
+                "搭地鐵",
+                "返工"
+            ],
+            "answer": "我搭地鐵去返工"
+        },
+        {
+            "question_no": 4,
+            "question_type": "matching",
+            "question": "Match these words with their meanings.",
+            "choices": [
+                ["蘋果", "Water"],
+                ["飮", "Apple"],
+                ["水", "To drink"],
+                ["車", "Cat"],
+                ["貓", "Car"]
+            ],
+            "answer": [
+                ["蘋果", "Apple"],
+                ["飮", "To drink"],
+                ["水", "Water"],
+                ["車", "Car"],
+                ["貓", "Cat"]
+            ]
+        },
+        {
+            "question_no": 5,
+            "question_type": "fill in the blanks",
+            "question": "你識唔識講 ___ 呀？",
+            "choices": [
+                "A. 廣東話",
+                "B. 飲茶",
+                "C. 叉燒",
+                "D. 巴士"
+            ],
+            "answer": "A"
+        },
+        {
+            "question_no": 6,
+            "question_type": "multiple choice",
+            "question": "What does 「早晨」 mean?",
+            "choices": [
+                "Good night",
+                "Good morning",
+                "Hello",
+                "Welcome"
+            ],
+            "answer": "Good morning"
+        },
+        {
+            "question_no": 7,
+            "question_type": "rearrange sentences",
+            "question": "Rearrange these parts.",
+            "choices": [
+                "好食",
+                "呢樣",
+                "嘢食",
+                "真係"
+            ],
+            "answer": "呢樣嘢食真係好食"
+        },
+        {
+            "question_no": 8,
+            "question_type": "matching",
+            "question": "Match these words with their meanings.",
+            "choices": [
+                ["今日", "Tomorrow"],
+                ["聽日", "Yesterday"],
+                ["琴日", "Now"],
+                ["而家", "Today"]
+            ],
+            "answer": [
+                ["今日", "Today"],
+                ["聽日", "Tomorrow"],
+                ["琴日", "Yesterday"],
+                ["而家", "Now"]
+            ]
+        },
+        {
+            "question_no": 9,
+            "question_type": "multiple choice",
+            "question": "What does 「唔該」 mean?",
+            "choices": [
+                "Please / Thank you",
+                "No problem",
+                "Long time no see",
+                "I don't know"
+            ],
+            "answer": "Please / Thank you"
+        },
+        {
+            "question_no": 10,
+            "question_type": "fill in the blanks",
+            "question": "我哋放假去咗海灘 ___ 泳。",
+            "choices": [
+                "A. 跑",
+                "B. 游",
+                "C. 跳",
+                "D. 飛"
+            ],
+            "answer": "B"
+        }
+    ]
+}
+
+
+
 According to the given structure, generate the questions for the given language
 
-For rearranging sentences question type, DO NOT have any puncuations of any language
+ONLY take these examples as reference, DO NOT directly copy these examples.
+
+For rearranging sentences question type, DO NOT have any punctuations of any language
+
+For matching questions, make sure the options are rearranged EXTREMELY randomly
 
 Generate 10 questions, randomly pick the question type for each question and generate
 
 Output the questions in json format.
+
+After generating the JSON structure, make sure to DOUBLE-CHECK your output to see if the sentences are grammatically correct.

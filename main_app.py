@@ -9,8 +9,20 @@ import re
 import json
 import importlib
 import html
-from urllib.parse import urlparse
+from urllib.parse import urlparse, urljoin
+import bleach
+import socket
+import ipaddress
 repair_json = None
+def _is_public_ip(ip_address):
+    ip = ipaddress.ip_address(ip_address)
+    return not (
+        ip.is_private or
+        ip.is_loopback or
+        ip.is_link_local or
+        ip.is_reserved or
+        ip.is_unspecified
+    )
 def _repair_llm_json(candidate_json):
     global repair_json
     if repair_json is None:
